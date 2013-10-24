@@ -36,7 +36,8 @@ public class Consumer implements Watcher {
             synchronized (mutex) {
                 mutex.wait();
             }
-            System.out.println("Start consumer: " + consumerId);
+
+            System.out.println("Consumer is started: " + consumerId);
 
             Producer.createQueueRoot(zk);
 
@@ -51,11 +52,13 @@ public class Consumer implements Watcher {
                         for(String child: children) {
                             String childPath = queuePath + "/" + child;
                             byte[] queueData = null;
+
                             try {
                                 queueData = zk.getData(childPath, false, stat);
                             } catch(KeeperException.NoNodeException e) {
                                 continue;
                             }
+
                             try {
                                 zk.delete(childPath, -1);
                             } catch(KeeperException.NoNodeException e) {
@@ -71,6 +74,8 @@ public class Consumer implements Watcher {
                     }
                 }
             }
+
+            System.out.println("Consumer is stopped: " + consumerId);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,7 +103,11 @@ public class Consumer implements Watcher {
 
         @Override
         public void run() {
-            System.out.println("Consumer [" + consumerId + "] [" + data + "]");
+            System.out.println("Consume data by " + consumerId + ": " + data);
+            System.out.println(data.substring(4));
+            if(Integer.parseInt(data.substring(4)) % 11 == 0) {
+                stopConsumer();
+            }
         }
     }
 }

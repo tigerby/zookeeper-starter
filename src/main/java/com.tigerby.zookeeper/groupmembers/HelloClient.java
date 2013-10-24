@@ -1,4 +1,4 @@
-package com.tigerby.zookeeper;
+package com.tigerby.zookeeper.groupmembers;
 
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;

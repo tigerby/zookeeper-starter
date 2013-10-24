@@ -50,11 +50,11 @@ public class TestDriver {
         _zkServers = zkServers;
 
         for(int i=0; i< Integer.parseInt(numberOfConsumer); i++) {
-            new ConsumerThread("CONSUMER_" + (i + 1)).start();
+            new ConsumerThread("[CONSUMER-" + (i + 1) + "]").start();
         }
 
         for(int i=0; i< Integer.parseInt(numberOfProducer); i++) {
-            new ProducerThread("PRODUCER_" + (i + 1)).start();
+            new ProducerThread("[PRODUCER-" + (i + 1) + "]").start();
         }
     }
 }

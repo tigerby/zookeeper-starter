@@ -1,5 +1,6 @@
 package com.tigerby.zookeeper.producerconsumer;
 
+import org.apache.http.annotation.GuardedBy;
 import org.apache.zookeeper.*;
 
 /**
@@ -9,8 +10,8 @@ import org.apache.zookeeper.*;
  * @version 1.0
  */
 public class Producer implements Watcher {
-    public static final String SERVICE_NAME = "twitter_crawl";
-    public static final String QUEUE_NAME = "test";
+    public static final String SERVICE_NAME = "producer_test_service";
+    public static final String QUEUE_NAME = "test_name";
     public static final String QUEUE_PREFIX = "q_";
 
     private String zkServers;
@@ -19,6 +20,7 @@ public class Producer implements Watcher {
     private ZooKeeper zk;
     private Object mutex = new Object();
 
+    @GuardedBy("mutex") static long dataSeq;
 
     public Producer(String zkServers, String producerId) {
         this.zkServers = zkServers;
@@ -32,15 +34,18 @@ public class Producer implements Watcher {
             synchronized (mutex) {
                 mutex.wait();
             }
+            System.out.println("Producer is started: " + producerId);
 
-            System.out.println("Start producer: " + producerId);
             String queuePath = "/" + SERVICE_NAME + "/" + QUEUE_NAME + "/" + QUEUE_PREFIX;
 
-            long seqNum = 1;
             while(true) {
                 try {
-                    zk.create(queuePath, (producerId + seqNum).getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
-                    seqNum++;
+                    byte[] data = ("data" + dataSeq).getBytes();
+                    zk.create(queuePath, data, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
+                    System.out.println("Produce data by " + producerId + ": " + ("data" + dataSeq));
+                    synchronized (mutex) {
+                        dataSeq++;
+                    }
                 } catch (KeeperException e) {
                     synchronized (mutex) {
                         mutex.wait();

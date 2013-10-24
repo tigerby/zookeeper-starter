@@ -1,4 +1,4 @@
-package com.tigerby.zookeeper;
+package com.tigerby.zookeeper.groupmembers;
 
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.zookeeper.*;
