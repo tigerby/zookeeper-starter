@@ -1,5 +1,10 @@
 package com.tigerby.zookeeper.groupmembers;
 
+import com.tigerby.thrift.HelloService;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -46,22 +51,22 @@ public class HelloClient implements Watcher {
     }
 
     private void doSomething( ) throws Exception {
-//        String helloServer = helloServers .get(
-//        rand.nextlnt(helloServers.size() - 1));
-//
-//        String[] serverlnfos = helloServer.split (":");
-//        TSocket socket = new TSocket(serverlnfos[0], Integer.parseInt(serverlnfos[1]));
-//        socket.setTimeout(5 * 1000);
-//        TTransport transport = new TFramedTransport(socket);
-//        HelloService .Client client = new HelloService.Client(new TBinaryProtocol(transport));
-//
-//        transport.open();
-//
-//        String result = client.greeting("test01", 30);
-//        System.out.println ("Received [" + result + "]");
-//
-//        transport.close();
-//        Thread.sleep(5 * 1000) ;
+        String helloServer = helloServers .get(
+        rand.nextInt(helloServers.size() - 1));
+
+        String[] serverInfos = helloServer.split (":");
+        TSocket socket = new TSocket(serverInfos[0], Integer.parseInt(serverInfos[1]));
+        socket.setTimeout(5 * 1000);
+        TTransport transport = new TFramedTransport(socket);
+        HelloService .Client client = new HelloService.Client(new TBinaryProtocol(transport));
+
+        transport.open();
+
+        String result = client.greeting("test01", 30);
+        System.out.println ("Received [" + result + "]");
+
+        transport.close();
+        Thread.sleep(5 * 1000) ;
     }
 
     @Override

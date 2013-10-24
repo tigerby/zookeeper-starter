@@ -1,5 +1,11 @@
 package com.tigerby.zookeeper.groupmembers;
 
+import com.tigerby.thrift.HelloService;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.server.THsHaServer;
+import org.apache.thrift.server.TServer;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.zookeeper.*;
 
@@ -19,12 +25,11 @@ public class HelloServer implements Watcher {
 
     public void runServer(int port) throws Exception {
         final TNonblockingServerSocket socket = new TNonblockingServerSocket(port);
+        final HelloService.Processor processor = new HelloService.Processor(new HelloHandler());
+        final TServer server = new THsHaServer(processor, socket, new TFramedTransport.Factory(), new TBinaryProtocol.Factory());
 
-        // ...
-
-        serverStarted (port) ;
         System.out.println("HelloServer started (port: " + port + ")");
-//        server.serve();
+        server.serve();
     }
 
     private void serverStarted(int port) throws Exception {
@@ -48,8 +53,11 @@ public class HelloServer implements Watcher {
         System.out.println("Receive ZK event: " + event);
     }
 
-//    class HelloHandler implements HelloService.Iface {
-//        // 기존 코드와 동일
-//    }
+    public class HelloHandler implements HelloService.Iface {
+        @Override
+        public String greeting(String name, int age) throws TException {
+            return "Hello " + name +"! You age is " + age + ".";
+        }
+    }
 
 }
