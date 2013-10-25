@@ -18,28 +18,32 @@ import java.util.List;
  * @version 1.0
  */
 public class ACLTest implements Watcher {
-    public void start() throws NoSuchAlgorithmException, KeeperException, InterruptedException, IOException {
-        ArrayList<ACL> acls = new ArrayList<ACL>();
 
-        acls.add(new ACL(ZooDefs.Perms.ALL, new Id("digest", DigestAuthenticationProvider.generateDigest("localhost:2181")))) ;
-        acls.add(new ACL(ZooDefs.Perms.WRITE, new Id("ip", "10.1.1.2")));
+  public void start()
+      throws NoSuchAlgorithmException, KeeperException, InterruptedException, IOException {
+    ArrayList<ACL> acls = new ArrayList<ACL>();
 
-        ZooKeeper zk = new ZooKeeper ("localhost:2181" ,10 * 1000, this) ;
+    acls.add(new ACL(ZooDefs.Perms.ALL, new Id("digest", DigestAuthenticationProvider
+        .generateDigest("localhost:2181"))));
+    acls.add(new ACL(ZooDefs.Perms.WRITE, new Id("ip", "10.1.1.2")));
 
-        zk.create("/test acl", "acl data".getBytes(), acls, CreateMode.PERSISTENT);
+    ZooKeeper zk = new ZooKeeper("tiger01:2181,tiger02:2181,tiger03:2181", 10 * 1000, this);
 
-        List<ACL> addedAcls = zk.getACL("/test acl", new Stat());
-        for (ACL eachAcl: addedAcls) {
-            System.out.println(eachAcl.toString());
-        }
+    zk.create("/acl_test", "This is data with acl.".getBytes(), acls, CreateMode.PERSISTENT);
+
+    List<ACL> addedAcls = zk.getACL("/acl_test", new Stat());
+    for (ACL eachAcl : addedAcls) {
+      System.out.println(eachAcl.toString());
     }
+  }
 
-    public static void main(String[] args) throws NoSuchAlgorithmException, KeeperException, InterruptedException, IOException {
-        new ACLTest().start();
-    }
+  public static void main(String[] args)
+      throws NoSuchAlgorithmException, KeeperException, InterruptedException, IOException {
+    new ACLTest().start();
+  }
 
-    @Override
-    public void process(WatchedEvent event) {
+  @Override
+  public void process(WatchedEvent event) {
 
-    }
+  }
 }

@@ -3,55 +3,66 @@ package com.tigerby.zookeeper;
 import org.apache.zookeeper.*;
 
 /**
- * Created with IntelliJ IDEA.
+ * zookeeper asynchronous call todo need to make it success. currently it is always back with
+ * failure.
  *
  * @author <a href="mailto:bongyeonkim@gmail.com">Kim Bongyeon</a>
  * @version 1.0
  */
 public class AsyncAPITest implements Watcher {
-    private ZooKeeper zk;
-    private Object monitor = new Object();
 
-    class CreateCallBack implements AsyncCallback.StringCallback {
-        @Override
-        public void processResult(int rc, String path, Object ctx, String name) {
-            if(rc == 0) {
-                System.out.println("콜백 수신 성공");
-            } else {
-                System.out.println("콜백 수신 실패");
-            }
+  private ZooKeeper zk;
+  private Object monitor = new Object();
 
-            //callback 받으면 태스트 프로그램을 종료시키기 위해 main 흐름으로 알려준다
-            synchronized (monitor) {
-                monitor.notifyAll();
-            }
-        }
-    }
-
-    public void start (){
-        try {
-            zk = new ZooKeeper("127.0.0.1:2181", 5000, this);
-
-            // callback 함수와 같이 호출하면 async 호출이 된다.
-            zk.create("/async/test101", "test".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, new CreateCallBack() , null);
-
-            // 이 부분은 create 호출 후 서버로부터 응답이 오지 않아도 바로 실행된다.
-            System.out.println("do something");
-
-            // 아래 코드가 없으면 테스트 프로그램이 바로 종료되기 때문에 callback이 실행되기 전에는 종료되지 않게 하기 위한 코드
-            synchronized(monitor) {
-                monitor.wait();
-            }
-        } catch (Exception e) {
-            e .printStackTrace();
-        }
-    }
+  class CreateCallBack implements AsyncCallback.StringCallback {
 
     @Override
-    public void process(WatchedEvent event) {
+    public void processResult(int rc, String path, Object ctx, String name) {
+      if (rc == 0) {
+        System.out.println(
+            "success! " + " path: " + path + ", ctx: " + ctx + ", name: " + name);
+      } else {
+        System.out.println(
+            "fail! " + "rc: " + rc + ", path: " + path + ", ctx: " + ctx + ", name: " + name);
+      }
 
+      synchronized (monitor) {
+        monitor.notifyAll();
+      }
     }
-    public static void main(String[] args) {
-        new AsyncAPITest().start();
+  }
+
+  public void start() {
+    try {
+      zk = new ZooKeeper("tiger01:2181,tiger02:2181,tiger03:2181", 5000, this);
+      synchronized (monitor) {
+        monitor.wait();
+      }
+
+      // add callback class
+      zk.create("/async/test", "async test".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT);
+
+      System.out.println("Do something asynchronously");
+
+      // wait until callback function is done.
+      synchronized (monitor) {
+        monitor.wait();
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+  }
+
+  @Override
+  public void process(WatchedEvent event) {
+    synchronized (monitor) {
+      monitor.notify();
+      System.out.println("connected to zookeeper: " + event.getState());
+    }
+  }
+
+  public static void main(String[] args) {
+    new AsyncAPITest().start();
+  }
 }
