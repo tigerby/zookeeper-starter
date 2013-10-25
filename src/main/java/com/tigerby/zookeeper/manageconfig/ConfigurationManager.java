@@ -1,4 +1,4 @@
-package com.tigerby.zookeeper;
+package com.tigerby.zookeeper.manageconfig;
 
 import org.apache.zookeeper.*;
 

@@ -1,5 +1,11 @@
-package com.tigerby.zookeeper;
+package com.tigerby.zookeeper.manageconfig;
 
+import com.tigerby.thrift.generated.HelloService;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.server.THsHaServer;
+import org.apache.thrift.server.TServer;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
@@ -48,10 +54,11 @@ public class HelloConfigServer implements Watcher {
 
     public void startServer (int port) throws Exception {
         final TNonblockingServerSocket socket = new TNonblockingServerSocket(port);
-//        final HelloService.Processor processor = new HelloService.Processor (new HelloHandler());
-//        final TServer server = new THsHaServer(processor, socket, new TFramedTransport.Factory(), new TBinaryProtocol.Factory()) ;
+        final HelloService.Processor processor = new HelloService.Processor (new HelloHandler());
+        final TServer server = new THsHaServer(new THsHaServer.Args(socket).processor(processor)) ;
+
         System.out.println("HelloServer started(port: " + port + ")");
-//        server.serve();
+        server.serve();
     }
 
     @Override
@@ -139,17 +146,17 @@ public class HelloConfigServer implements Watcher {
         new HelloConfigServer().startServer(Integer.parseInt(args[0]));
     }
 
-//    class HelloHandler implements HelloService.Iface {
-//        @Override
-//        public String greeting(String name, int age) throws TException {
-//            String greetingPrefix = "Hello";
-//
-//            synchronized(HelloConfigServer.configurations) {
-//                if (HelloConfigServer. configurations .containsKey(HelloConfigServer.CONF_GREETING_KEY)) {
-//                    greetingPrefix = HelloConfigServer.configurations .get(HelloConfigServer.CONF_GREETING_KEY);
-//                }
-//            }
-//            return greetingPrefix + " " + name +" You are " + age + " years old";
-//        }
-//    }
+    class HelloHandler implements HelloService.Iface {
+        @Override
+        public String greeting(String name, int age) throws TException {
+            String greetingPrefix = "Hello";
+
+            synchronized(HelloConfigServer.configurations) {
+                if (HelloConfigServer. configurations .containsKey(HelloConfigServer.CONF_GREETING_KEY)) {
+                    greetingPrefix = HelloConfigServer.configurations .get(HelloConfigServer.CONF_GREETING_KEY);
+                }
+            }
+            return greetingPrefix + " " + name +" You are " + age + " years old";
+        }
+    }
 }
